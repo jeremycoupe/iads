@@ -70,6 +70,10 @@ gateConflicts = []
 preGateConflicts = []
 postGateConflicts = []
 sFlowBinary = []
+preMeterRampIN = []
+postMeterRampIN = []
+preMeterAMAIN = []
+postMeterAMAIN=[]
 
 excludeVec = ['20171226','20171227', '20180106', '20180110',  '20180111',  '20180115' , '20180117','20180112']
 
@@ -154,9 +158,25 @@ for date in range(len(dateVecIADS)):
 
 						else:
 							if str(dfFlightSpecifc['Bank Number'][flight]) == str(2.0):
+								
 								if str(dfFlightSpecifc['gate_conflict_values_present'][flight]) == 'True':
 									countGateConflicts +=1
 									print(countGateConflicts)
+
+								if str(dfFlightSpecifc['Actual_AMA_Taxi_In'][flight]) != 'nan':
+									if str(dfFlightSpecifc['Actual_Ramp_Taxi'][flight]) != 'nan':
+										if str(dfFlightSpecifc['Pred_AMA_Taxi_at_AMA_Taxi_In_Start'][flight]) != 'nan':
+											if str(dfFlightSpecifc['Pred_AMA_Taxi_at_AMA_Taxi_In_Start'][flight]) != 'nan':
+												if pd.Timestamp(dfFlightSpecifc['Actual_ON_Time'][flight]) < pd.Timestamp('2017-11-29 00:00:00'):
+													rampVal = (dfFlightSpecifc['Actual_Ramp_Taxi'][flight] - dfFlightSpecifc['Ramp_Taxi_Pred_at_AMA_Taxi_In_Start'][flight]) / float(60)
+													amaVal = (dfFlightSpecifc['Actual_AMA_Taxi_In'][flight] - dfFlightSpecifc['Pred_AMA_Taxi_at_AMA_Taxi_In_Start'][flight]) / float(60)
+													preMeterAMAIN.append( max([0,amaVal]) )
+													preMeterRampIN.append( max([0,rampVal]) )
+												else:
+													rampVal = (dfFlightSpecifc['Actual_Ramp_Taxi'][flight] - dfFlightSpecifc['Ramp_Taxi_Pred_at_AMA_Taxi_In_Start'][flight]) / float(60)
+													amaVal = (dfFlightSpecifc['Actual_AMA_Taxi_In'][flight] - dfFlightSpecifc['Pred_AMA_Taxi_at_AMA_Taxi_In_Start'][flight]) / float(60)
+													postMeterAMAIN.append(max([0,amaVal]))
+													postMeterRampIN.append(max([0,rampVal]))
 					
 
 					print(dateVecIADS[date])
@@ -202,6 +222,13 @@ print(preGateConflicts)
 print('Pre Gate Conflicts = ' + str(np.mean(preGateConflicts)) ) 
 print(postGateConflicts)
 print('Post Gate Conflicts = ' + str(np.mean(postGateConflicts)) )
+
+print('\n')
+print('\n')
+print('Pre Ramp Taxi In = ' + str(np.mean(preMeterRampIN)))
+print('Post Ramp Taxi In = ' + str(np.mean(postMeterRampIN)))
+print('Pre AMA Taxi In = ' + str(np.mean(preMeterAMAIN)))
+print('Post AMA Taxi In = ' + str(np.mean(postMeterAMAIN)))
 
 #plt.figure(1,figsize=(14,14))
 fig, host = plt.subplots(figsize=(14,14))
