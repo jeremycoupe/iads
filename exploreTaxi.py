@@ -24,7 +24,7 @@ deltaVec = []
 deltaVecBank2 = []
 aboveThreshold = []
 
-dfIads = pd.read_csv('data/20180104_flight_specific_0.5.csv' , sep=',' , index_col=False)
+dfIads = pd.read_csv('data/0.6/20180104_flight_specific_0.6.csv' , sep=',' , index_col=False)
 dfSummary = pd.read_csv('~/Documents/Reports/opsSummaryDirectory/tacticalStitched/v0.2/tactical.v0.2._KCLT.flightSummary.v0.3.20180104.09.00-20180105.08.59.20180105.15.15.04.csv' , sep=',' , index_col=False)
 
 for flight in range(len(dfSummary['gufi'])):

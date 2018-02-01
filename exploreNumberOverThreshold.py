@@ -4,64 +4,16 @@ import matplotlib.pyplot as plt
 import os
 from scipy import stats
 
-dateVecIADS = []
+excludeEarlyDays = True
 
+#'N_BE/A/T=36C'
+utilization = 'N_BE/A/T=36C'
+stSave = utilization.replace('/','-')
 
-# str0 = '201712'
-# str1 = '2017-12-'
-# for i in range(4,32):
-# 	if i < 10:
-# 		dateVecIADS.append(str0 + '0' + str(i) )
-# 		dateVecSummary.append(str1 + '0' + str(i) )
-# 	else:
-# 		dateVecIADS.append(str0 + str(i) )
-# 		dateVecSummary.append(str1 + str(i) )
-
-
-
-# deltaVec = []
-# deltaVecBank2 = []
-# aboveThreshold = []
-
-# dfIads = pd.read_csv('data/20180104_flight_specific_0.5.csv' , sep=',' , index_col=False)
-# dfSummary = pd.read_csv('~/Documents/Reports/opsSummaryDirectory/tacticalStitched/v0.2/tactical.v0.2._KCLT.flightSummary.v0.3.20180104.09.00-20180105.08.59.20180105.15.15.04.csv' , sep=',' , index_col=False)
-
-# for flight in range(len(dfSummary['gufi'])):
-# 	print(flight)
-# 	print(str(dfSummary['Track_Hit_Out_Time'][flight]))
-# 	if str(dfSummary['Track_Hit_Out_Time'][flight]) == str('False'):
-# 		print('HERE')
-# 		if str(dfSummary['Excess_Taxi_Time'][flight]) != 'nan':
-# 			try:
-# 				print(dfSummary['gufi'][flight])
-# 				summaryTaxi = dfSummary['Excess_Taxi_Time'][flight]
-# 				dfTemp0 = dfIads[ dfIads['gufi'] == dfSummary['gufi'][flight] ]
-# 				dfTemp = dfTemp0.reset_index(drop=True)
-# 				iadsTaxi = dfTemp['Excess_AMA_Taxi_Out'][0] / float(60)
-# 				delta = max([0,summaryTaxi]) - max([0,iadsTaxi])
-# 				if str(delta) != 'nan':
-# 					deltaVec.append(delta)
-# 				print(delta)
-# 				print('\n')
-# 				if str(dfTemp['Broader Bank Number'][0]) == str(2.0):
-# 					deltaVecBank2.append(delta)
-# 					if delta > 14:
-# 						aboveThreshold.append(delta)
-
-# 			except:
-# 				print(dfTemp)
-# 				print('THERE WAS A PROBLEM WITH ' + dfSummary['gufi'][flight])
-
-# print(len(aboveThreshold))		
-# print(deltaVec)
-# print(np.mean(deltaVec))
-# print(np.std(deltaVec))
-# plt.hist(deltaVec)
-# plt.figure()
-# plt.hist(deltaVecBank2)
-# plt.show()
-
-figname = 'RawThresholdData.png'
+if excludeEarlyDays:
+	stSaveFig = 'figs/Threshold' + stSave + 'FilterDays.png'
+else:	
+	stSaveFig = 'figs/Threshold' + stSave + '.png'
 
 dateVecIADS = []
 
@@ -81,28 +33,29 @@ for i in range(1,32):
 		dateVecIADS.append(str0 + str(i) )
 
 str0 = '201801'
-for i in range(1,23):
+for i in range(1,25):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
 	else:
 		dateVecIADS.append(str0 + str(i) )
 
 
-excludeVec = ['20180111','20180117','20180112']
+excludeVec = ['20171226','20171227', '20180106', '20180110',  '20180111',  '20180115' , '20180117','20180112']
 
-# excludeVec.append('20171129')
-# excludeVec.append('20171130')
+if excludeEarlyDays == True:
+	excludeVec.append('20171129')
+	excludeVec.append('20171130')
 
-# str0 = '201712'
-# for i in range(1,17):
-# 	if i < 10:
-# 		excludeVec.append(str0 + '0' + str(i) )
-# 	else:
-# 		excludeVec.append(str0 + str(i) )
+	str0 = '201712'
+	for i in range(1,17):
+		if i < 10:
+			excludeVec.append(str0 + '0' + str(i) )
+		else:
+			excludeVec.append(str0 + str(i) )
 
 
 plt.figure(1,figsize=(14,10))
-ThresholdVec = [14,18,22]
+ThresholdVec = [16,20,24]
 
 def plotAbove(ThresholdVec):
 
@@ -113,8 +66,8 @@ def plotAbove(ThresholdVec):
 	for date in range(len(dateVecIADS)):
 		# xTickVec.append(dateVecIADS[date])
 		try:
-			dfIads = pd.read_csv('data/' + dateVecIADS[date]+ '_flight_specific_0.5.csv' , sep=',' , index_col=False)
-			dfIadsSummary = pd.read_csv('data/' + dateVecIADS[date] + '_iads_summary_0.5.csv' , sep=',' , index_col=False)
+			dfIads = pd.read_csv('data/0.6/' + dateVecIADS[date]+ '_flight_specific_0.6.csv' , sep=',' , index_col=False)
+			dfIadsSummary = pd.read_csv('data/0.6/' + dateVecIADS[date] + '_iads_summary_0.6.csv' , sep=',' , index_col=False)
 		
 			
 
@@ -124,8 +77,8 @@ def plotAbove(ThresholdVec):
 					bankIndex = j
 
 			if dateVecIADS[date] not in excludeVec:
-				if True:
-				#if str(dfIadsSummary['Runway Utilization At Start'][bankIndex]) == 'N_BE/A/T=36C':
+				#if True:
+				if str(dfIadsSummary['Runway Utilization At Start'][bankIndex]) == 'N_BE/A/T=36C':
 					if str(dfIadsSummary['Positive Excess AMA taxi-out time statistics without FAA Controlled(mean)'][bankIndex]) != 'nan':
 						xTickVec.append(dateVecIADS[date])
 						binaryVec[date] = 1
@@ -156,10 +109,11 @@ def plotAbove(ThresholdVec):
 	plt.ylabel
 
 plotAbove(ThresholdVec)
-
+plt.title('Utilization: ' + utilization)
 plt.ylabel('Number of Aircraft Above Threshold')
 plt.legend()
-plt.savefig(figname)
+plt.tight_layout()
+plt.savefig(stSaveFig)
 plt.show()
 
 		
