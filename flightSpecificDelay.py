@@ -9,7 +9,7 @@ dateVecTrigger = []
 
 str0 = '201712'
 str2 = '12/'
-for i in range(17,32):
+for i in range(3,32):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
 	else:
