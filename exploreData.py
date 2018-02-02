@@ -277,7 +277,7 @@ plt.xlabel('Pre-meter mean: ' + str(np.mean(preMeterRamp)) + ', Post-meter mean:
 plt.legend()
 
 plt.tight_layout()
-plt.savefig(stSaveFig)
+#plt.savefig(stSaveFig)
 
 plt.show()
 	
