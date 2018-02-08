@@ -50,18 +50,18 @@ for i in range(1,32):
 		dateVecIADS.append(str0 + str(i) )
 
 str0 = '201801'
-for i in range(1,25):
+for i in range(1,32):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
 	else:
 		dateVecIADS.append(str0 + str(i) )
 
-# str0 = '201802'
-# for i in range(1,5):
-# 	if i < 10:
-# 		dateVecIADS.append(str0 + '0' + str(i) )
-# 	else:
-# 		dateVecIADS.append(str0 + str(i) )
+str0 = '201802'
+for i in range(1,5):
+	if i < 10:
+		dateVecIADS.append(str0 + '0' + str(i) )
+	else:
+		dateVecIADS.append(str0 + str(i) )
 
 AvgExcessTaxiIn = []
 AvgRampTaxiIn = []
