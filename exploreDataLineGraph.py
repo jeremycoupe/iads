@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from scipy import stats
+from scipy.interpolate import spline
+from scipy.stats import *
 
 excludeEarlyDays = True
 filterTail = True
@@ -280,23 +282,22 @@ plt.tight_layout()
 #plt.savefig(stSaveFig)
 
 plt.figure(figsize = (12,10))
+
+# y,binEdges=np.histogram(preMeterAMA,range=[xMinVal,xMaxVal],bins = 10,normed = True)
+# y2,binEdges2=np.histogram(postMeterAMA,range=[xMinVal,xMaxVal],bins = 10,normed = True)
+# bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+# bincenters2 = 0.5*(binEdges2[1:]+binEdges2[:-1])
+
+
+
 xMinVal = min([min(preMeterAMA),min(postMeterAMA)])
 xMaxVal = max([max(preMeterAMA),max(postMeterAMA)])
-y,binEdges=np.histogram(preMeterAMA,range=[xMinVal,xMaxVal],bins = 10,normed = True)
-y2,binEdges2=np.histogram(postMeterAMA,range=[xMinVal,xMaxVal],bins = 10,normed = True)
-bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
-bincenters2 = 0.5*(binEdges2[1:]+binEdges2[:-1])
-print(bincenters)
-print(y)
-print(bincenters2)
-print(y2)
+kernel = gaussian_kde(preMeterAMA,bw_method=0.6)
+kernel2 = gaussian_kde(postMeterAMA,bw_method=0.6)
+xVec = np.linspace(xMinVal,xMaxVal,100)
 
-y = np.insert(y,0,y[0])
-y2 = np.insert(y2,0,y2[0])
-bincenters2 = np.insert(bincenters2,0,0)
-
-plt.plot( bincenters2, y , '-o' , color = 'red',alpha = 0.5,label='AMA Excess Taxi Before Metering')
-plt.plot(bincenters2,y2 , '-o' , color = 'blue',alpha = 0.5,label = 'AMA Excess Taxi After Metering')
+plt.plot( xVec, kernel(xVec) , '-' , linewidth = 4, color = 'red',alpha = 0.65,label='AMA Excess Taxi Before Metering')
+plt.plot(xVec, kernel2(xVec), '-' , linewidth = 4, color = 'blue',alpha = 0.65,label = 'AMA Excess Taxi After Metering')
 # plt.hist(preMeterAMA,range=[xMinVal,xMaxVal],bins = 20,color = 'red',alpha = 0.5,normed = True,histtype = 'step',label='AMA Excess Taxi Before Metering')
 # plt.hist(postMeterAMA,range=[xMinVal,xMaxVal],bins = 20,color = 'blue',alpha = 0.5,normed = True,histtype = 'step',label = 'AMA Excess Taxi After Metering')
 plt.title('Pre-meter Excess AMA Taxi Time Average: ' + str(np.mean(preMeterAMA))[0:5] + ', Post-meter Excess AMA Taxi Time Average: ' + str(np.mean(postMeterAMA))[0:5])
