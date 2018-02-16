@@ -7,7 +7,7 @@ from scipy import stats
 excludeEarlyDays = True
 
 #'N_BE/A/T=36C'
-utilization = 'N_BE/A/T=36C'
+utilization = 'N_BE/A/T=36C_V1'
 stSave = utilization.replace('/','-')
 
 if excludeEarlyDays:
@@ -40,7 +40,7 @@ for i in range(1,25):
 		dateVecIADS.append(str0 + str(i) )
 
 
-excludeVec = ['20171226','20171227', '20180106', '20180110',  '20180111',  '20180115' , '20180117','20180112']
+excludeVec = ['20171113','20171101','20171226','20171227', '20180106', '20180110',  '20180111',  '20180115' , '20180117','20180112']
 
 if excludeEarlyDays == True:
 	excludeVec.append('20171129')
@@ -54,11 +54,12 @@ if excludeEarlyDays == True:
 			excludeVec.append(str0 + str(i) )
 
 
-plt.figure(1,figsize=(14,10))
-ThresholdVec = [16,20,24]
+plt.figure(1,figsize=(10,6))
+#ThresholdVec = [16,20,24]
+ThresholdVec = [16]
 
 def plotAbove(ThresholdVec):
-
+	countMeterStart = 0
 	xTickVec = []
 	aboveThresholdVec = np.zeros((len(ThresholdVec),len(dateVecIADS)))
 	binaryVec = np.zeros(len(dateVecIADS))
@@ -80,6 +81,9 @@ def plotAbove(ThresholdVec):
 				#if True:
 				if str(dfIadsSummary['Runway Utilization At Start'][bankIndex]) == 'N_BE/A/T=36C':
 					if str(dfIadsSummary['Positive Excess AMA taxi-out time statistics without FAA Controlled(mean)'][bankIndex]) != 'nan':
+						if dateVecIADS[date] == '20171217':
+							meterStartIndex = countMeterStart
+						countMeterStart+=1
 						xTickVec.append(dateVecIADS[date])
 						binaryVec[date] = 1
 						print(dateVecIADS[date])
@@ -108,9 +112,13 @@ def plotAbove(ThresholdVec):
 	plt.xticks(np.arange(len(xTickVec)),xTickVec,rotation =90)
 	plt.ylabel
 
-plotAbove(ThresholdVec)
+	return meterStartIndex
+
+meterStartIndex = plotAbove(ThresholdVec)
+plt.plot([meterStartIndex,meterStartIndex] , [0,21] , '--' , color = 'grey' , alpha =0.5, label = 'Metering ON / OFF')
 plt.title('Utilization: ' + utilization)
 plt.ylabel('Number of Aircraft Above Threshold')
+plt.ylim([0,21])
 plt.legend()
 plt.tight_layout()
 plt.savefig(stSaveFig)

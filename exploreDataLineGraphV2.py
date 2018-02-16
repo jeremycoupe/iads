@@ -9,6 +9,9 @@ from scipy.stats import *
 excludeEarlyDays = True
 filterTail = True
 
+dfTrigger = pd.read_csv('~/Desktop/testFormat.csv' , sep=',' , index_col=False)
+
+
 #'N_BE/A/T=36C'
 utilization = 'N_BE/A/T=36C'
 stSave = utilization.replace('/','-')
@@ -33,28 +36,43 @@ A14UpperBound = 60
 
 
 dateVecIADS = []
+dateVecTrigger = []
 
 str0 = '201711'
+str2 = '11/'
 for i in range(1,31):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
+		#dateVecTrigger.append(str2 + '0' + str(i) )
 	else:
 		dateVecIADS.append(str0 + str(i) )
+		#dateVecTrigger.append(str2  + str(i) )
+	dateVecTrigger.append(str2 + str(i) + '/17')
+	
 
 
 str0 = '201712'
+str2 = '12/'
 for i in range(1,32):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
+		#dateVecTrigger.append(str2 + '0' + str(i) )
 	else:
 		dateVecIADS.append(str0 + str(i) )
+		#dateVecTrigger.append(str2  + str(i) )
+	dateVecTrigger.append(str2 + str(i) + '/17')
+	
 
 str0 = '201801'
+str2 = '1/'
 for i in range(1,25):
 	if i < 10:
 		dateVecIADS.append(str0 + '0' + str(i) )
+		#dateVecTrigger.append(str2 + '0' + str(i) )
 	else:
 		dateVecIADS.append(str0 + str(i) )
+		#dateVecTrigger.append(str2  + str(i) )
+	dateVecTrigger.append(str2 + str(i) + '/18')
 
 AvgExcessTaxiIn = []
 AvgRampTaxiIn = []
@@ -95,6 +113,7 @@ if excludeEarlyDays == True:
 			excludeVec.append(str0 + str(i) )
 
 countMeterStart = 0
+triggerVec = []
 
 for date in range(len(dateVecIADS)):
 	try:
@@ -125,6 +144,20 @@ for date in range(len(dateVecIADS)):
 					AvgRampTaxiIn.append(dfIads['Positive Excess ramp taxi-in time statistics(mean)'][bankIndex])
 					taxiInTotal.append(dfIads['Positive Excess AMA taxi-in time statistics(mean)'][bankIndex] + dfIads['Positive Excess ramp taxi-in time statistics(mean)'][bankIndex])
 					excessRamp = []
+
+
+					if pd.Timestamp(dateVecIADS[date] + ' 00:00:00') < pd.Timestamp('2017-11-29 00:00:00'):
+						triggerVec.append('nan')
+					else:
+						getTarget = True
+						for idx in range(len(dfTrigger['date'])):
+							if getTarget:
+								print(dfTrigger['date'][idx])
+								if str(dfTrigger['date'][idx]) == dateVecTrigger[date]:
+									triggerVec.append(dfTrigger['time-based-target-excess-queue-minutes'][idx])
+									getTarget = False
+
+
 					for flight in range(len(dfFlightSpecifc['gufi'])):
 						if str(dfFlightSpecifc['isArrival'][flight]) == 'False':
 							if str(dfFlightSpecifc['Bank Number'][flight]) == str(2.0):
@@ -149,6 +182,7 @@ for date in range(len(dateVecIADS)):
 															print('LOOK INTO')
 															print(dateVecIADS[date])
 															print(dfFlightSpecifc['gufi'][flight])
+													
 
 												else:
 													if excessRamp0/ float(60) < rampTaxiUpperBound:
@@ -165,6 +199,7 @@ for date in range(len(dateVecIADS)):
 												# if (excessRamp0 / float(60)) < -3  :
 												# 	print(dateVecIADS[date])
 												# 	print(dfFlightSpecifc['gufi'][flight])
+													
 
 						else:
 							if str(dfFlightSpecifc['Bank Number'][flight]) == str(2.0):
@@ -256,24 +291,27 @@ print('Post AMA Taxi In = ' + str(np.mean(postMeterAMAIN)))
 fig, host = plt.subplots(figsize=(10,6))
 
 #plt.subplot(4,1,1)
+print('THIS IS TRIGGER VEC')
+print(triggerVec)
 plt.plot(AvgExcessAMA,'-*',label='Excess AMA Taxi OUT')
 plt.plot(AvgExcessRampV2,'-*',label='Excess Ramp Taxi OUT')
 plt.plot(vecAdd,'-*',label = 'AMA + Ramp Excess Taxi OUT')
-plt.plot([meterStartIndex,meterStartIndex] , [0,16] , '--' , color = 'grey' , alpha =0.5, label = 'Metering ON / OFF')
+plt.plot(triggerVec,'-*' , color='black',label='Target Excess Queue Time')
+plt.plot([meterStartIndex,meterStartIndex] , [0,18] , '--' , color = 'grey' , alpha =0.5, label = 'Metering Started')
 plt.xticks(np.arange(len(xTickVec)),xTickVec,rotation =90,fontsize = 6)
 plt.ylabel('Average Taxi Out Time [Minutes]')
-plt.ylim([0,16])
-plt.legend()
+plt.ylim([0,18])
+plt.legend(loc = 'upper left')
 plt.title('Utilization: ' + utilization)
 plt.tight_layout()
-plt.savefig('ExcessTaxiOut.png')
+plt.savefig('ExcessTaxiOutWithTarget.png')
 
 fig, host = plt.subplots(figsize=(10,6))
 plt.subplot(2,1,1)
 plt.plot(AvgExcessTaxiIn,'-*',label='Excess AMA Taxi IN')
 plt.plot(AvgRampTaxiIn,'-*',label='Excess Ramp Taxi IN')
 plt.plot(taxiInTotal,'-*' , label = 'AMA + Ramp Taxi IN')
-plt.plot([meterStartIndex,meterStartIndex] , [0,14] , '--' , color = 'grey' , alpha =0.5, label = 'Metering ON / OFF')
+plt.plot([meterStartIndex,meterStartIndex] , [0,14] , '--' , color = 'grey' , alpha =0.5, label = 'Metering Started')
 plt.xticks(np.arange(len(xTickVec)),xTickVec,rotation =90,fontsize = 6)
 plt.ylabel('Average Taxi In Time [Minutes]',fontsize=10)
 plt.title('Utilization: ' + utilization)
@@ -288,7 +326,7 @@ plt.subplot(2,1,2)
 
 
 plt.plot(np.array(gateConflicts),'--s',color = 'black', alpha = 0.5,label='Gate Conflicts')
-plt.plot([meterStartIndex,meterStartIndex] , [0,50] , '--' , color = 'grey' , alpha =0.5, label = 'Metering ON / OFF')
+plt.plot([meterStartIndex,meterStartIndex] , [0,50] , '--' , color = 'grey' , alpha =0.5, label = 'Metering Started')
 plt.xticks(np.arange(len(xTickVec)),xTickVec,rotation =90,fontsize = 6)
 plt.ylabel('Number of Gate Conflicts',fontsize=10)
 plt.ylim([0,50])
@@ -317,7 +355,7 @@ plt.savefig('ExcessTaxiIn.png')
 # plt.legend()
 
 # plt.tight_layout()
-# #plt.savefig(stSaveFig)
+# ##plt.savefig(stSaveFig)
 
 plt.figure(figsize = (10,10))
 
@@ -342,6 +380,7 @@ plt.plot(xVec, kernel2(xVec), '-' , linewidth = 4, color = 'blue',alpha = 0.65,l
 # plt.hist(postMeterAMA,range=[xMinVal,xMaxVal],bins = 20,color = 'blue',alpha = 0.5,normed = True,histtype = 'step',label = 'AMA Excess Taxi After Metering')
 plt.title('Excess AMA Taxi Out Time [Minutes] \n Average Before Metering: ' + str(np.mean(preMeterAMA))[0:5] + ', Average After Metering: ' + str(np.mean(postMeterAMA))[0:5])
 plt.ylabel('Percentage of Aircraft')
+plt.xlabel('Excess AMA Taxi Out [Minutes]', fontsize = 8)
 plt.legend()
 
 frame1 = plt.gca()
@@ -364,6 +403,7 @@ plt.plot( xVec, kernel(xVec) , '-' , linewidth = 4, color = 'red',alpha = 0.65,l
 plt.plot(xVec, kernel2(xVec), '-' , linewidth = 4, color = 'blue',alpha = 0.65,label = 'Ramp Excess Taxi Out After Metering')
 plt.title('Excess Ramp Taxi Out Time [Minutes] \n Average Before Metering: ' + str(np.mean(preMeterRamp))[0:5] + ', Average After Metering: ' + str(np.mean(postMeterRamp))[0:5])
 plt.ylabel('Percentage of Aircraft')
+plt.xlabel('Excess Ramp Taxi Out [Minutes]', fontsize = 8)
 plt.legend()
 
 frame1 = plt.gca()
@@ -417,6 +457,7 @@ plt.plot( xVec, kernel(xVec) , '-' , linewidth = 4, color = 'red',alpha = 0.65,l
 plt.plot(xVec, kernel2(xVec), '-' , linewidth = 4, color = 'blue',alpha = 0.65,label = 'Ramp Excess Taxi In After Metering')
 plt.title('Excess Ramp Taxi In Time [Minutes] \n Average Before Metering: ' + str(np.mean(preMeterRampIN))[0:5] + ', Average After Metering: ' + str(np.mean(postMeterRampIN))[0:5])
 plt.ylabel('Percentage of Aircraft')
+plt.xlabel('Excess Ramp Taxi In [Minutes]', fontsize = 8)
 plt.legend()
 
 frame1 = plt.gca()
@@ -438,6 +479,7 @@ xVec = np.linspace(xMinVal,xMaxVal,100)
 plt.plot( xVec, kernel(xVec) , '-' , linewidth = 4, color = 'red',alpha = 0.65,label='<Actuan In> - <Scheduled In> Before Metering')
 plt.plot(xVec, kernel2(xVec), '-' , linewidth = 4, color = 'blue',alpha = 0.65,label = '<Actuan In> - <Scheduled In> After Metering')
 plt.title('<Actuan In> - <Scheduled In> [Minutes] \n Average Before Metering: ' + str(np.mean(preA14))[0:5] + ', Average After Metering: ' + str(np.mean(postA14))[0:5])
+plt.xlabel('Actual In - Scheduled In [Minutes]',fontsize=8)
 plt.ylabel('Percentage of Aircraft')
 
 # print(preA14)
